@@ -1,0 +1,121 @@
+General Public License v3.0
+
+Copyright (c) 2026 Joseph Peransi
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program. If not, see https://www.gnu.org/licenses/.
+
+Disclaimer: I am not affiliated with NVIDIA or Microsoft. I do not promise your PC won't explode. This is how I fixed mine. If it helps you, cool. If not, too bad.
+
+Warning: This may void any warranty you have left. Also—Microsoft or NVIDIA may decide to block it in a future update. And if you don't understand what registry injection means, stop. One wrong key and Windows forgets how to boot. Back up your system first. Like, actually do it.
+
+WDDM Hybrid Graphics Orchestrator (v2.0)
+"The hardware is willing; the software must be forced."
+
+Author: Joseph Peransi
+
+Release Date: 2026
+
+Target OS: Windows 10 / 11 (24H2+)
+
+Target Hardware: Legacy NVIDIA GPUs (Pascal/Maxwell) + Intel iGPUs
+
+1. The Manifesto
+This tool is a counter-measure against software-defined obsolescence. In 2026, operating systems like Windows 11 24H2 prioritize battery efficiency and NPU scheduling over raw graphical throughput. This often results in capable legacy hardware (like the GTX 1070) being treated as a secondary accelerator, forced into aggressive sleep states (L1), or ignored entirely by the scheduler.
+
+This script does not overclock your GPU. It fires the parking attendant that refuses to let you drive your car. It forces the OS to treat your gaming PC as a workstation, not an Ultrabook.
+
+2. Features
+⚡ Power Subsystem Enforcement
+Unlocks "Ultimate Performance": Injects the hidden Windows workstation power plan (GUID: e9a42b02...).
+
+Kills PCIe ASPM: Disables "Active State Power Management." This prevents the PCIe bus from powering down between frames, eliminating micro-stutters and input latency caused by "wake-up" lag.
+
+💉 Registry Injection
+Bypasses Windows Settings: Writes directly to HKCU\Software\Microsoft\DirectX\UserGpuPreferences. This circumvents the Windows 11 24H2 bug where the Settings app crashes if it detects invalid legacy entries.
+
+Force High Performance: Hard-codes GpuPreference=2 for target applications.
+
+🖱️ Context Menu Restoration
+"Run on GTX 1070": Restores the classic right-click context menu option that NVIDIA removed and Microsoft buried. Launch any executable on the dGPU instantly.
+
+🛠️ Legacy Shim Resurrection
+SHIM_MCCOMPAT: Injects the legacy environment variable 0x800000001 into the session. This forces Electron apps (Discord, VS Code) and OpenGL titles to detect the dGPU, bypassing DirectX scheduling entirely.
+
+3. Driver Compatibility
+The script is designed to be robust against driver fragmentation. It targets the Windows Operating System directly, ignoring the driver's UI or control panel.
+
+Driver-Agnostic: Because the script utilizes Windows WDDM Registry keys and Kernel Power Plans, it functions correctly regardless of your specific driver version. It works on drivers from 2016 through 2026.
+
+NVIDIA Support: The SHIM_MCCOMPAT injection is compatible with standard and DCH drivers dating back to the Optimus era.
+
+AMD Support: The Registry Injection (GpuPreference=2) and Power Plan enforcement work perfectly on AMD systems. The NVIDIA-specific SHIM_MCCOMPAT variable will simply be ignored by AMD drivers without causing errors.
+
+Requirement: A functional WDDM driver must be installed. The script will not work if you are running on the "Microsoft Basic Display Adapter" (i.e., missing drivers), as the OS cannot perform hybrid switching without a driver communication channel.
+
+4. Hardware Compatibility & Use Cases
+While designed for legacy hardware, this script benefits modern systems differently.
+
+Legacy GPUs (GTX 10 / 900 / 700 Series)
+Primary Function: Functionality Restorer.
+
+Use Case: Fixes "Planned Obsolescence."
+
+Mechanism: Windows 11 often defaults these cards to the iGPU to save power because the driver no longer flags them as "High Performance" for new apps. The Registry Injection forces the OS to use them.
+
+Modern GPUs (RTX 20 / 30 / 40 / 50 Series)
+Primary Function: Latency & Stutter Killer.
+
+Use Case: Fixes DPC Latency and Micro-stutters.
+
+Mechanism: Even powerful cards (like the RTX 4090) suffer from "Sleep State Aggression" where Windows cuts power to the PCIe bus during milliseconds of inactivity. Disabling ASPM keeps the lane active, eliminating the "wake-up lag" that causes micro-stutters in high-FPS gaming. SHIM_MCCOMPAT is also confirmed to force stubborn Electron apps (Discord, Launchers) onto the dGPU.
+
+5. Installation & Usage
+Prerequisites
+Python 3.10+ installed.
+
+Ensure "Add Python to PATH" is checked during installation.
+
+Administrator Privileges (Required to modify Registry and Power Plans).
+
+How to Run
+Save the script as orchestrator.py.
+
+Right-click the script and select Run as Administrator (or run it from an elevated Command Prompt).
+
+First Run (Setup Mode):
+
+The script will detect your NVIDIA/Intel hardware IDs.
+
+It will inject the "Ultimate Performance" power plan.
+
+It will add the Right-Click Context Menu to your Windows Registry.
+
+It will register default apps (Blender, CMD) if found.
+
+Daily Usage:
+
+Right-click any .exe file (Game, App, Launcher).
+
+Select "Register for GTX 1070 Performance".
+
+A black window will pop up briefly to confirm the registry injection.
+
+Launch the app normally. It is now permanently forced to the dGPU.
+
+6. Warnings & Disclaimers
+Thermals: Disabling ASPM means your GPU PCIe link is always active (L0 state). Your idle temperatures will rise (expect +5°C to +10°C on laptops). This is the cost of eliminating latency.
+
+Battery Life: Do not use this on battery power. This script turns your laptop into a desktop. Battery life will be decimated.
+
+Windows Updates: Major Windows updates (like 25H2) may reset the Power Plan. Re-run the script to re-apply the "Ultimate Performance" GUID.
+
+7. Troubleshooting
+Q: I don't see the "Ultimate Performance" plan in Control Panel. A: The script adds it, but you may need to reboot for the UI to refresh. You can verify it's active by running powercfg /getactivescheme in CMD.
+
+Q: The Context Menu isn't showing up. A: On Windows 11, it might be hidden under "Show more options" (Shift + Right Click) depending on your OS tweaks.
+
+Q: Discord is still laggy. A: Discord is an Electron app. After running the script, fully quit Discord (from the system tray) and relaunch it so it picks up the SHIM_MCCOMPAT variable.
